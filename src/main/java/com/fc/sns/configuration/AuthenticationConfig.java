@@ -1,6 +1,6 @@
-package com.fc.sns.controller.configuration;
+package com.fc.sns.configuration;
 
-import com.fc.sns.controller.configuration.filter.JwtTokenFilter;
+import com.fc.sns.configuration.filter.JwtTokenFilter;
 import com.fc.sns.controller.exception.CustomAuthenticationEntryPoint;
 import com.fc.sns.service.UserService;
 import lombok.RequiredArgsConstructor;

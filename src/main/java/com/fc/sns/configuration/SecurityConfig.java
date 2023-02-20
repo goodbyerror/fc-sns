@@ -1,4 +1,4 @@
-package com.fc.sns.controller.configuration;
+package com.fc.sns.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package com.fc.sns.controller.configuration.filter;
+package com.fc.sns.configuration.filter;
 
 import com.fc.sns.model.User;
 import com.fc.sns.service.UserService;
