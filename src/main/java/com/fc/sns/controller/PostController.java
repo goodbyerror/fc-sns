@@ -1,5 +1,6 @@
 package com.fc.sns.controller;
 
+import com.fc.sns.controller.request.PostCommentRequest;
 import com.fc.sns.controller.request.PostCreateRequest;
 import com.fc.sns.controller.request.PostModifyRequest;
 import com.fc.sns.controller.response.PostResponse;
@@ -8,6 +9,8 @@ import com.fc.sns.model.Post;
 import com.fc.sns.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,5 +38,38 @@ public class PostController {
         return Response.success(PostResponse.fromPost(post));
     }
 
+    @DeleteMapping("/{postId}")
+    public Response<Void> delete(@PathVariable Integer postId, Authentication authentication) {
+        postService.delete(authentication.getName(), postId);
 
+        return Response.success();
+    }
+
+    @GetMapping
+    public Response<Page<PostResponse>> list(Pageable pageable) {
+        return Response.success(postService.list(pageable).map(PostResponse::fromPost));
+
+    }
+
+    @GetMapping("/my")
+    public Response<Page<PostResponse>> my(Pageable pageable, Authentication authentication) {
+        return Response.success(postService.myList(pageable, authentication.getName()).map(PostResponse::fromPost));
+    }
+
+    @PostMapping("/{postId}/likes")
+    public Response<Void> likes(@PathVariable Integer postId, Authentication authentication) {
+        postService.like(postId, authentication.getName());
+        return Response.success();
+    }
+
+    @GetMapping("/{postId}/likes")
+    public Response<Integer> likesCount(@PathVariable Integer postId) {
+        return Response.success(postService.likesCount(postId));
+    }
+
+    @PostMapping("/{postId}/comments")
+    public Response<Void> comments(@PathVariable Integer postId, @RequestBody PostCommentRequest postCommentRequest, Authentication authentication) {
+        postService.comment(postId, postCommentRequest, authentication.getName());
+        return Response.success();
+    }
 }

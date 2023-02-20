@@ -1,7 +1,6 @@
 package com.fc.sns.model.entity;
 
-import com.fc.sns.model.UserRole;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
@@ -12,25 +11,26 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "\"user\"")
+@Table(name = "comment")
 @Getter
 @Setter
-@SQLDelete(sql = "UPDATE \"user\" SET deleted_at = NOW() where id=?")
-@Where(clause = "deleted_at is NULL")
-public class UserEntity {
+@SQLDelete(sql = "UPDATE \"comment\" SET deleted_at = NOW() where id=?")
+@Where(clause = "deleted_at is null")
+public class CommentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "user_name")
-    private String userName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
 
-    @Column(name = "password")
-    private String password;
+    @ManyToOne
+    @JoinColumn(name = "post_id")
+    private PostEntity post;
 
-    @Column(name = "role")
-    @Enumerated(EnumType.STRING)
-    private UserRole role = UserRole.USER;
+    @Column(name = "comment")
+    private String comment;
 
     @Column(name = "registered_at")
     private Timestamp registeredAt;
@@ -51,10 +51,10 @@ public class UserEntity {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public static UserEntity of(String userName, String password) {
-        UserEntity userEntity = new UserEntity();
-        userEntity.setUserName(userName);
-        userEntity.setPassword(password);
-        return userEntity;
+    public CommentEntity of(String comment) {
+        CommentEntity commentEntity = new CommentEntity();
+        commentEntity.setComment(comment);
+        return commentEntity;
     }
+
 }
