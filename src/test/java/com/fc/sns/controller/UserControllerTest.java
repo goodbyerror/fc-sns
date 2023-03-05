@@ -12,11 +12,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,8 +47,8 @@ class UserControllerTest {
         when(userService.join(userName, password)).thenReturn(mock(User.class));
 
         mockMvc.perform(post("/api/v1/users/join")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(new UserJoinRequest(userName, password))))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new UserJoinRequest(userName, password))))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -70,8 +75,8 @@ class UserControllerTest {
         when(userService.login(userName, password)).thenReturn("password");
 
         mockMvc.perform(post("/api/v1/users/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password))))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password))))
                 .andDo(print())
                 .andExpect(status().isOk());
     }
@@ -79,13 +84,13 @@ class UserControllerTest {
     @Test
     void login_회원가입이_안된_유저가_로그인을_시도하는_경우_오류_테스트() throws Exception {
         String userName = "username";
-        String password= "password";
+        String password = "password";
 
         when(userService.login(userName, password)).thenThrow(new SnsApplicationException(ErrorCode.USER_NOT_FOUND));
 
         mockMvc.perform(post("/api/v1/users/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password))))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password))))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -98,10 +103,27 @@ class UserControllerTest {
         when(userService.login(userName, password)).thenThrow(new SnsApplicationException(ErrorCode.INVALID_PASSWORD));
 
         mockMvc.perform(post("/api/v1/users/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password))))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new UserLoginRequest(userName, password))))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    void 알람_기능_정상() throws Exception {
+        when(userService.alarmList(any(), any())).thenReturn(Page.empty());
+        mockMvc.perform(get("/api/v1/users/alarm")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andDo(print()).andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void 로그인_안한_유저_알람_실패() throws Exception {
+        mockMvc.perform(post("/api/v1/users/alarm")
+                .contentType(MediaType.APPLICATION_JSON)
+        ).andDo(print()).andExpect(status().isUnauthorized());
     }
 
 }

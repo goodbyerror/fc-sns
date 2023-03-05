@@ -285,5 +285,27 @@ public class PostControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @WithMockUser
+    void 알람기능_정상() throws Exception {
+        when(userService.alarmList(any(), any())).thenReturn(Page.empty());
+
+        mockMvc.perform(get("/api/v1/users/alarm")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void 알람기능_로그인하지_않은_경우() throws Exception {
+        when(userService.alarmList(any(), any())).thenReturn(Page.empty());
+
+        mockMvc.perform(get("/api/v1/users/alarm")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
 
 }

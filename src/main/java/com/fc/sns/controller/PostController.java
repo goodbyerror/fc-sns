@@ -3,8 +3,10 @@ package com.fc.sns.controller;
 import com.fc.sns.controller.request.PostCommentRequest;
 import com.fc.sns.controller.request.PostCreateRequest;
 import com.fc.sns.controller.request.PostModifyRequest;
+import com.fc.sns.controller.response.CommentResponse;
 import com.fc.sns.controller.response.PostResponse;
 import com.fc.sns.controller.response.Response;
+import com.fc.sns.model.Comment;
 import com.fc.sns.model.Post;
 import com.fc.sns.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +65,7 @@ public class PostController {
     }
 
     @GetMapping("/{postId}/likes")
-    public Response<Integer> likesCount(@PathVariable Integer postId) {
+    public Response<Long> likesCount(@PathVariable Integer postId) {
         return Response.success(postService.likesCount(postId));
     }
 
@@ -71,5 +73,10 @@ public class PostController {
     public Response<Void> comments(@PathVariable Integer postId, @RequestBody PostCommentRequest postCommentRequest, Authentication authentication) {
         postService.comment(postId, postCommentRequest, authentication.getName());
         return Response.success();
+    }
+
+    @GetMapping("/{postId}/comments")
+    public Response<Page<CommentResponse>> comments(@PathVariable Integer postId, Pageable pageable, Authentication authentication) {
+        return Response.success(postService.getComments(postId, pageable).map(CommentResponse::fromComment));
     }
 }

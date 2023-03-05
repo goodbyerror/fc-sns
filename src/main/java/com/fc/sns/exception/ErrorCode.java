@@ -14,7 +14,8 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "Token is invalid"),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "Post not found"),
     INVALID_PERMISSION(HttpStatus.UNAUTHORIZED, "Permission is not valid"),
-    ALREADY_LIKED(HttpStatus.CONFLICT, "User already liked the post");
+    ALREADY_LIKED(HttpStatus.CONFLICT, "User already liked the post"),
+    ALARM_CONNECT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Connecting alarm error");
 
     private HttpStatus status;
     private String message;

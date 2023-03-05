@@ -1,6 +1,5 @@
 package com.fc.sns.model.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
@@ -11,7 +10,9 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "comment")
+@Table(name = "comment", indexes = {
+        @Index(name = "post_id_idx", columnList = "post_id")
+})
 @Getter
 @Setter
 @SQLDelete(sql = "UPDATE \"comment\" SET deleted_at = NOW() where id=?")
@@ -21,6 +22,7 @@ public class CommentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
@@ -50,10 +52,12 @@ public class CommentEntity {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public CommentEntity of(String comment) {
-        CommentEntity commentEntity = new CommentEntity();
-        commentEntity.setComment(comment);
-        return commentEntity;
+    public static CommentEntity of(UserEntity userEntity, PostEntity postEntity, String comment) {
+        CommentEntity entity = new CommentEntity();
+        entity.setPost(postEntity);
+        entity.setUser(userEntity);
+        entity.setComment(comment);
+        return entity;
     }
 
 }

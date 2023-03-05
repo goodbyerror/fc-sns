@@ -9,7 +9,6 @@ import lombok.Getter;
 import java.sql.Timestamp;
 
 @Getter
-@Builder
 @AllArgsConstructor
 public class Post {
     private Integer id;
@@ -20,15 +19,15 @@ public class Post {
     private Timestamp updatedAt;
     private Timestamp deletedAt;
 
-    public static Post fromEntity(PostEntity postEntity) {
-        return Post.builder()
-                .id(postEntity.getId())
-                .title(postEntity.getTitle())
-                .body(postEntity.getBody())
-                .user(User.fromEntity(postEntity.getUser()))
-                .registeredAt(postEntity.getRegisteredAt())
-                .updatedAt(postEntity.getUpdatedAt())
-                .deletedAt(postEntity.getDeletedAt())
-                .build();
+    public static Post fromEntity(PostEntity entity) {
+        return new Post(
+                entity.getId(),
+                entity.getTitle(),
+                entity.getBody(),
+                User.fromEntity(entity.getUser()),
+                entity.getRegisteredAt(),
+                entity.getUpdatedAt(),
+                entity.getDeletedAt()
+        );
     }
 }

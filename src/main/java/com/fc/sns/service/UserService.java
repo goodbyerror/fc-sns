@@ -2,13 +2,19 @@ package com.fc.sns.service;
 
 import com.fc.sns.exception.ErrorCode;
 import com.fc.sns.exception.SnsApplicationException;
+import com.fc.sns.model.Alarm;
 import com.fc.sns.model.User;
 import com.fc.sns.model.entity.UserEntity;
+import com.fc.sns.repository.AlarmEntityRepository;
+import com.fc.sns.repository.UserCacheRepository;
 import com.fc.sns.repository.UserEntityRepository;
 import com.fc.sns.util.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.procedure.spi.ParameterRegistrationImplementor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +26,9 @@ import javax.transaction.Transactional;
 public class UserService {
 
     private final UserEntityRepository userEntityRepository;
+    private final AlarmEntityRepository alarmEntityRepository;
     private final BCryptPasswordEncoder encoder;
+    private final UserCacheRepository userCacheRepository;
 
     @Value("${jwt.secret-key}")
     private String secretKey;
@@ -42,21 +50,29 @@ public class UserService {
     }
 
     public String login(String userName, String password) {
-        UserEntity userEntity = userEntityRepository.findByUserName(userName)
-                .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not found", userName)));
+        User user = loadUserByUserName(userName);
+//        UserEntity userEntity = userEntityRepository.findByUserName(userName)
+//                .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not found", userName)));
 
-        if (!encoder.matches(password, userEntity.getPassword())) {
+        if (!encoder.matches(password, user.getPassword())) {
             throw new SnsApplicationException(ErrorCode.INVALID_PASSWORD);
         }
 
-        //토큰 생성
-        String token = JwtTokenUtils.generatedToken(userName, secretKey, expiredTimeMs);
+        userCacheRepository.setUser(user);
 
-        return token;
+        //토큰 생성
+        return JwtTokenUtils.generatedToken(userName, secretKey, expiredTimeMs);
     }
 
     public User loadUserByUserName(String userName) {
-        return userEntityRepository.findByUserName(userName).map(User::fromEntity)
-                .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not found", userName)));
+        return userCacheRepository.getUser(userName).orElseGet(() ->
+                userEntityRepository.findByUserName(userName).map(User::fromEntity)
+                        .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not found", userName)))
+            );
+    }
+
+    public Page<Alarm> alarmList(Integer userId, Pageable pageable) {
+
+        return alarmEntityRepository.findAllByUserId(userId, pageable).map(Alarm::fromEntity);
     }
 }
